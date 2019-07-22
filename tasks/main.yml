@@ -1,0 +1,26 @@
+---
+
+- name: Check if hdsentinel is installed
+  stat:
+    path: /usr/local/bin/hdsentinel
+  register: hdsentinel_bin
+
+- block:
+
+    - name: Download hdsentinel binary
+      get_url:
+        url: 'https://www.hdsentinel.com/hdslin/hdsentinel-{{ hdsentinel_version | replace(".", "") }}.gz'
+        dest: '/tmp/hdsentinel-{{ hdsentinel_version | replace(".", "") }}.gz'
+      delegate_to: localhost
+
+    - name: Unarchive hdsentinel binary
+      command: 'gunzip -f /tmp/hdsentinel-{{ hdsentinel_version | replace(".", "") }}.gz'
+      delegate_to: localhost
+
+    - name: Propagate hdsentinel binary
+      copy:
+        src: '/tmp/hdsentinel-{{ hdsentinel_version | replace(".", "") }}'
+        dest: /usr/local/bin/hdsentinel
+        mode: 0755
+
+  when: not hdsentinel_bin.stat.exists or hdsentinel_update | bool
